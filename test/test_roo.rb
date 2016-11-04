@@ -944,28 +944,28 @@ Sheet 3:
       skip if defined? JRUBY_VERSION
       oo.to_xml
       sheetname = oo.sheets.first
-      doc = Nokogiri::XML(oo.to_xml)
+      doc = Ox.parse(oo.to_xml)
       sheet_count = 0
-      doc.xpath('//spreadsheet/sheet').each {|tmpelem|
+      doc.locate('spreadsheet/sheet').each {|tmpelem|
         sheet_count += 1
       }
       assert_equal 5, sheet_count
-      doc.xpath('//spreadsheet/sheet').each { |xml_sheet|
+      doc.locate('spreadsheet/sheet').each { |xml_sheet|
         all_cells = init_all_cells(oo, sheetname)
         x = 0
-        assert_equal sheetname, xml_sheet.attributes['name'].value
-        xml_sheet.children.each {|cell|
-          if cell.attributes['name']
+        assert_equal sheetname, xml_sheet['name']
+        xml_sheet.nodes.each {|cell|
+          if cell['name']
             expected = [all_cells[x][:row],
               all_cells[x][:column],
               all_cells[x][:content],
               all_cells[x][:type],
             ]
             result = [
-              cell.attributes['row'],
-              cell.attributes['column'],
+              cell['row'],
+              cell['column'],
               cell.content,
-              cell.attributes['type'],
+              cell['type'],
             ]
             assert_equal expected, result
             x += 1
@@ -2111,7 +2111,7 @@ where the expected result is
   end
 
   def test_name_with_leading_slash
-    xlsx = Roo::Excelx.new(File.join(TESTDIR,'name_with_leading_slash.xlsx'))
+    xlsx = Roo::Excelx.new(File.join(TESTDIR, 'name_with_leading_slash.xlsx'))
     assert_equal 1, xlsx.sheets.count
   end
 end # class

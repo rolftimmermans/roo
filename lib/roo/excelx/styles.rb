@@ -29,33 +29,33 @@ module Roo
       end
 
       def extract_definitions
-        doc.xpath('//cellXfs').flat_map do |xfs|
-          xfs.children.map do |xf|
+        doc.locate('styleSheet/cellXfs').flat_map do |xfs|
+          xfs.nodes.map do |xf|
             fonts[xf['fontId'].to_i]
           end
         end
       end
 
       def extract_fonts
-        doc.xpath('//fonts/font').map do |font_el|
+        doc.locate('styleSheet/fonts/font').map do |font_el|
           Font.new.tap do |font|
-            font.bold = !font_el.xpath('./b').empty?
-            font.italic = !font_el.xpath('./i').empty?
-            font.underline = !font_el.xpath('./u').empty?
+            font.bold = !font_el.locate('b').empty?
+            font.italic = !font_el.locate('i').empty?
+            font.underline = !font_el.locate('u').empty?
           end
         end
       end
 
       def extract_num_fmt_ids
-        doc.xpath('//cellXfs').flat_map do |xfs|
-          xfs.children.map do |xf|
+        doc.locate('styleSheet/cellXfs').flat_map do |xfs|
+          xfs.nodes.map do |xf|
             xf['numFmtId']
           end
         end
       end
 
       def extract_num_fmts
-        Hash[doc.xpath('//numFmt').map do |num_fmt|
+        Hash[doc.locate('styleSheet/numFmts/numFmt').map do |num_fmt|
           [num_fmt['numFmtId'], num_fmt['formatCode']]
         end]
       end

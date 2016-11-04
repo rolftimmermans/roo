@@ -1,3 +1,4 @@
+$VERBOSE=nil
 require 'simplecov'
 # require deps
 require 'tmpdir'

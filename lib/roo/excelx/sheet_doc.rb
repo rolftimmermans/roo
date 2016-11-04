@@ -38,7 +38,7 @@ module Roo
       # row xml
       def each_cell(row_xml)
         return [] unless row_xml
-        row_xml.children.each do |cell_element|
+        row_xml.nodes.each do |cell_element|
           # If you're sure you're not going to need this hyperlinks you can discard it
           hyperlinks = unless @options[:no_hyperlinks]
                          key = ::Roo::Utils.ref_to_key(cell_element['r'])
@@ -83,7 +83,7 @@ module Roo
       # Returns a type of <Excelx::Cell>.
       def cell_from_xml(cell_xml, hyperlink)
         coordinate = extract_coordinate(cell_xml['r'])
-        return Excelx::Cell::Empty.new(coordinate) if cell_xml.children.empty?
+        return Excelx::Cell::Empty.new(coordinate) if cell_xml.nodes.empty?
 
         # NOTE: This is error prone, to_i will silently turn a nil into a 0.
         #       This works by coincidence because Format[0] is General.
@@ -92,7 +92,7 @@ module Roo
         value_type = cell_value_type(cell_xml['t'], format)
         formula = nil
 
-        cell_xml.children.each do |cell|
+        cell_xml.nodes.each do |cell|
           case cell.name
           when 'is'
             content_arr = cell.search('t').map(&:content)
@@ -100,7 +100,7 @@ module Roo
               return Excelx::Cell.create_cell(:string, content_arr.join(''), formula, style, hyperlink, coordinate)
             end
           when 'f'
-            formula = cell.content
+            formula = cell.text
           when 'v'
             return create_cell_from_value(value_type, cell, formula, format, style, hyperlink, base_date, coordinate)
           end
@@ -115,23 +115,23 @@ module Roo
         #       it will break some brittle tests.
         excelx_type = [:numeric_or_formula, format.to_s]
 
-        # NOTE: There are only a few situations where value != cell.content
+        # NOTE: There are only a few situations where value != cell.text
         #       1. when a sharedString is used. value = sharedString;
-        #          cell.content = id of sharedString
-        #       2. boolean cells: value = 'TRUE' | 'FALSE'; cell.content = '0' | '1';
+        #          cell.text = id of sharedString
+        #       2. boolean cells: value = 'TRUE' | 'FALSE'; cell.text = '0' | '1';
         #          But a boolean cell should use TRUE|FALSE as the formatted value
         #          and use a Boolean for it's value. Using a Boolean value breaks
         #          Roo::Base#to_csv.
         #       3. formula
         case value_type
         when :shared
-          value = shared_strings.use_html?(cell.content.to_i) ? shared_strings.to_html[cell.content.to_i] : shared_strings[cell.content.to_i]
+          value = shared_strings.use_html?(cell.text.to_i) ? shared_strings.to_html[cell.text.to_i] : shared_strings[cell.text.to_i]
           Excelx::Cell.create_cell(:string, value, formula, style, hyperlink, coordinate)
         when :boolean, :string
-          value = cell.content
+          value = cell.text
           Excelx::Cell.create_cell(value_type, value, formula, style, hyperlink, coordinate)
         when :time, :datetime
-          cell_content = cell.content.to_f
+          cell_content = cell.text.to_f
           # NOTE: A date will be a whole number. A time will have be > 1. And
           #      in general, a datetime will have decimals. But if the cell is
           #      using a custom format, it's possible to be interpreted incorrectly.
@@ -148,11 +148,11 @@ module Roo
                       else
                         :date
                       end
-          Excelx::Cell.create_cell(cell_type, cell.content, formula, excelx_type, style, hyperlink, base_date, coordinate)
+          Excelx::Cell.create_cell(cell_type, cell.text, formula, excelx_type, style, hyperlink, base_date, coordinate)
         when :date
-          Excelx::Cell.create_cell(value_type, cell.content, formula, excelx_type, style, hyperlink, base_date, coordinate)
+          Excelx::Cell.create_cell(value_type, cell.text, formula, excelx_type, style, hyperlink, base_date, coordinate)
         else
-          Excelx::Cell.create_cell(:number, cell.content, formula, excelx_type, style, hyperlink, coordinate)
+          Excelx::Cell.create_cell(:number, cell.text, formula, excelx_type, style, hyperlink, coordinate)
         end
       end
 
@@ -163,11 +163,11 @@ module Roo
       end
 
       def extract_hyperlinks(relationships)
-        return {} unless (hyperlinks = doc.xpath('/worksheet/hyperlinks/hyperlink'))
+        return {} unless (hyperlinks = doc.locate('worksheet/hyperlinks/hyperlink'))
 
         Hash[hyperlinks.map do |hyperlink|
-          if hyperlink.attribute('id') && (relationship = relationships[hyperlink.attribute('id').text])
-            [::Roo::Utils.ref_to_key(hyperlink.attributes['ref'].to_s), relationship.attribute('Target').text]
+          if hyperlink['id'] && (relationship = relationships[hyperlink['id']])
+            [Roo::Utils.ref_to_key(hyperlink['ref'].to_s), relationship['Target']]
           end
         end.compact]
       end
@@ -175,8 +175,8 @@ module Roo
       def expand_merged_ranges(cells)
         # Extract merged ranges from xml
         merges = {}
-        doc.xpath('/worksheet/mergeCells/mergeCell').each do |mergecell_xml|
-          tl, br = mergecell_xml['ref'].split(/:/).map { |ref| ::Roo::Utils.ref_to_key(ref) }
+        doc.locate('worksheet/mergeCells/mergeCell').each do |mergecell_xml|
+          tl, br = mergecell_xml['ref'].split(/:/).map { |ref| Roo::Utils.ref_to_key(ref) }
           for row in tl[0]..br[0] do
             for col in tl[1]..br[1] do
               next if row == tl[0] && col == tl[1]
@@ -191,7 +191,7 @@ module Roo
       end
 
       def extract_cells(relationships)
-        extracted_cells = Hash[doc.xpath('/worksheet/sheetData/row/c').map do |cell_xml|
+        extracted_cells = Hash[doc.locate('worksheet/sheetData/row/c').map do |cell_xml|
           key = ::Roo::Utils.ref_to_key(cell_xml['r'])
           [key, cell_from_xml(cell_xml, hyperlinks(relationships)[key])]
         end]
@@ -203,7 +203,7 @@ module Roo
 
       def extract_dimensions
         Roo::Utils.each_element(@path, 'dimension') do |dimension|
-          return dimension.attributes['ref'].value
+          return dimension['ref']
         end
       end
     end

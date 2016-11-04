@@ -93,14 +93,14 @@ RSpec.describe ::Roo::Utils do
   context '.each_element' do
     it 'returns the expected result' do
       described_class.each_element('test/files/sheet1.xml', 'dimension') do |dim|
-        expect(dim.attributes["ref"].value).to eq "A1:B11"
+        expect(dim["ref"]).to eq "A1:B11"
       end
       rows = []
       described_class.each_element('test/files/sheet1.xml', 'row') do |row|
         rows << row
       end
       expect(rows.size).to eq 11
-      expect(rows[2].attributes["r"].value).to eq "3"
+      expect(rows[2]["r"]).to eq "3"
     end
   end
 end

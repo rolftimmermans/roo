@@ -1,3 +1,5 @@
+require "roo/xml_extractor"
+
 module Roo
   module Utils
     extend self
@@ -62,17 +64,20 @@ module Roo
     end
 
     def load_xml(path)
-      ::File.open(path, 'rb') do |file|
-        ::Nokogiri::XML(file)
+      File.open(path, 'rb') do |file|
+        Nokogiri::XML(file)
       end
     end
 
+    def load_xml_ox(path)
+      # , skip: :skip_return
+      Ox.load_file(path, strip_namespace: true)
+    end
+
     # Yield each element of a given type ('row', 'c', etc.) to caller
-    def each_element(path, elements)
-      Nokogiri::XML::Reader(::File.open(path, 'rb'), nil, nil, Nokogiri::XML::ParseOptions::NOBLANKS).each do |node|
-        next unless node.node_type == Nokogiri::XML::Reader::TYPE_ELEMENT && Array(elements).include?(node.name)
-        yield Nokogiri::XML(node.outer_xml).root if block_given?
-      end
+    def each_element(path, element)
+      handler = XmlExtractor.new(element, &Proc.new)
+      Ox.sax_parse(handler, File.open(path, 'rb'), strip_namespace: true)
     end
   end
 end

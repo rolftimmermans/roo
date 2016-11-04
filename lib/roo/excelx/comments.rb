@@ -12,9 +12,9 @@ module Roo
       def extract_comments
         return {} unless doc_exists?
 
-        Hash[doc.xpath('//comments/commentList/comment').map do |comment|
-          value = (comment.at_xpath('./text/r/t') || comment.at_xpath('./text/t')).text
-          [::Roo::Utils.ref_to_key(comment.attributes['ref'].to_s), value]
+        Hash[doc.locate('comments/commentList/comment').map do |comment|
+          values = comment.locate('text/r/t') + comment.locate('text/t')
+          [Roo::Utils.ref_to_key(comment['ref'].to_s), values.map(&:text).join]
         end]
       end
     end

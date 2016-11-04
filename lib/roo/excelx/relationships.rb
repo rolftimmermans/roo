@@ -16,8 +16,8 @@ module Roo
       def extract_relationships
         return [] unless doc_exists?
 
-        Hash[doc.xpath('/Relationships/Relationship').map do |rel|
-          [rel.attribute('Id').text, rel]
+        Hash[doc.locate('Relationships/Relationship').map do |rel|
+          [rel['Id'], rel]
         end]
       end
     end

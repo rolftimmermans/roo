@@ -9,7 +9,7 @@ module Roo
 
       def doc
         if doc_exists?
-          ::Roo::Utils.load_xml(@path).remove_namespaces!
+          Roo::Utils.load_xml_ox(@path)
         end
       end
 

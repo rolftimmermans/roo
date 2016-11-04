@@ -3,6 +3,7 @@
 require 'tmpdir'
 require 'stringio'
 require 'nokogiri'
+require 'ox'
 require 'roo/utils'
 
 # Base class for all other types of spreadsheets

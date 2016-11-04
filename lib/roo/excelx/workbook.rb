@@ -24,12 +24,12 @@ module Roo
       end
 
       def sheets
-        doc.xpath('//sheet')
+        doc.locate('workbook/sheets/sheet')
       end
 
       # aka labels
       def defined_names
-        Hash[doc.xpath('//definedName').map do |defined_name|
+        Hash[doc.locate('workbook/definedNames/definedName').map do |defined_name|
           # "Sheet1!$C$5"
           sheet, coordinates = defined_name.text.split('!$', 2)
           col, row = coordinates.split('$')
@@ -45,8 +45,8 @@ module Roo
           # it's set in the Workbook's workbookPr
           # http://msdn.microsoft.com/en-us/library/ff530155(v=office.12).aspx
           result = Date.new(1899, 12, 30) # default
-          doc.css('workbookPr[date1904]').each do |workbookPr|
-            if workbookPr['date1904'] =~ /true|1/i
+          doc.locate('workbook/workbookPr/@date1904').each do |date1904|
+            if date1904 =~ /true|1/i
               result = Date.new(1904, 01, 01)
               break
             end

@@ -3,7 +3,6 @@ require 'roo/excelx/extractor'
 module Roo
   class Excelx
     class SharedStrings < Excelx::Extractor
-
       COMMON_STRINGS = {
         t: "t",
         r: "r",
@@ -31,50 +30,46 @@ module Roo
 
       private
 
-      def fix_invalid_shared_strings(doc)
-        invalid = { '_x000D_'  => "\n" }
-        xml = doc.to_s
-        return doc unless xml[/#{invalid.keys.join('|')}/]
-
-        ::Nokogiri::XML(xml.gsub(/#{invalid.keys.join('|')}/, invalid))
+      def sanitize_shared_string(str)
+        str.gsub("\r", "").gsub("_x000D_", "\n")
       end
 
       def extract_shared_strings
         return [] unless doc_exists?
 
-        document = fix_invalid_shared_strings(doc)
         # read the shared strings xml document
-        document.xpath('/sst/si').map do |si|
+        doc.locate('sst/si').map do |si|
           shared_string = ''
-          si.children.each do |elem|
+          si.nodes.each do |elem|
             case elem.name
             when 'r'
-              elem.children.each do |r_elem|
-                shared_string << r_elem.content if r_elem.name == 't'
+              elem.nodes.each do |r_elem|
+                shared_string << r_elem.text if r_elem.name == 't'
               end
             when 't'
-              shared_string = elem.content
+              shared_string = elem.text
             end
           end
-          shared_string
+          sanitize_shared_string(shared_string)
         end
       end
 
       def extract_html
         return [] unless doc_exists?
-        fix_invalid_shared_strings(doc)
+
         # read the shared strings xml document
-        doc.xpath('/sst/si').map do |si|
+        doc.locate('sst/si').map do |si|
           html_string = '<html>'
-          si.children.each do |elem|
+          si.nodes.each do |elem|
             case elem.name
             when 'r'
               html_string << extract_html_r(elem)
             when 't'
-              html_string << elem.content
+              html_string << elem.text
             end # case elem.name
           end # si.children.each do |elem|
           html_string << '</html>'
+          sanitize_shared_string(html_string)
         end # doc.xpath('/sst/si').map do |si|
       end # def extract_html
 
@@ -104,10 +99,10 @@ module Roo
           u:   false
         }
         b, i, u, sub, sup = false, false, false, false, false
-        r_elem.children.each do |elem|
+        r_elem.nodes.each do |elem|
           case elem.name
           when 'rPr'
-            elem.children.each do |rPr_elem|
+            elem.nodes.each do |rPr_elem|
               case rPr_elem.name
               when 'b'
                 # set formatting for Bold to true
@@ -120,7 +115,7 @@ module Roo
                 xml_elems[:u] = true
               when 'vertAlign'
                 # See if the Vertical Alignment is subscript or superscript
-                case rPr_elem.xpath('@val').first.value
+                case rPr_elem['val']
                 when 'subscript'
                   # set formatting for Subscript to true and Superscript to false ... Can't have both
                   xml_elems[:sub] = true
@@ -133,7 +128,7 @@ module Roo
               end
             end
           when 't'
-            str << create_html(elem.content, xml_elems)
+            str << create_html(elem.text, xml_elems)
           end
         end
         str
