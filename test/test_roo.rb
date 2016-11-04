@@ -471,7 +471,7 @@ class TestRoo < Minitest::Test
           assert_equal "Tagebuch des Sekret\303\244rs.  Nachrichten aus Chile", oo.cell(46,'A')
           assert_equal "Tagebuch aus Chile  Juli 1977", oo.cell(55,'A')
           assert oo.to_csv(File.join(tempdir,"Bibelbund.csv"))
-          assert File.exists?(File.join(tempdir,"Bibelbund.csv"))
+          assert File.exist?(File.join(tempdir,"Bibelbund.csv"))
           assert_equal "", file_diff(File.join(TESTDIR, "Bibelbund.csv"), File.join(tempdir,"Bibelbund.csv")),
             "error in class #{oo.class}"
           #end
@@ -880,7 +880,7 @@ Sheet 3:
       Dir.mktmpdir do |tempdir|
         csv_output = File.join(tempdir,'time_test.csv')
         assert oo.to_csv(csv_output)
-        assert File.exists?(csv_output)
+        assert File.exist?(csv_output)
         assert_equal "", `diff --strip-trailing-cr #{TESTDIR}/time-test.csv #{csv_output}`
         # --strip-trailing-cr is needed because the test-file use 0A and
         # the test on an windows box generates 0D 0A as line endings
@@ -893,7 +893,7 @@ Sheet 3:
       Dir.mktmpdir do |tempdir|
         csv_output = File.join(tempdir,'boolean.csv')
         assert oo.to_csv(csv_output)
-        assert File.exists?(csv_output)
+        assert File.exist?(csv_output)
         assert_equal "", `diff --strip-trailing-cr #{TESTDIR}/boolean.csv #{csv_output}`
         # --strip-trailing-cr is needed because the test-file use 0A and
         # the test on an windows box generates 0D 0A as line endings
@@ -905,7 +905,7 @@ Sheet 3:
       Dir.mktmpdir do |tempdir|
         csv_output = File.join(tempdir,'link.csv')
         assert oo.to_csv(csv_output)
-        assert File.exists?(csv_output)
+        assert File.exist?(csv_output)
         assert_equal "", `diff --strip-trailing-cr #{TESTDIR}/link.csv #{csv_output}`
         # --strip-trailing-cr is needed because the test-file use 0A and
         # the test on an windows box generates 0D 0A as line endings
@@ -1578,7 +1578,7 @@ where the expected result is
         datetime_csv_file = File.join(tempdir,"datetime.csv")
 
         assert oo.to_csv(datetime_csv_file)
-        assert File.exists?(datetime_csv_file)
+        assert File.exist?(datetime_csv_file)
         assert_equal "", file_diff('test/files/so_datetime.csv', datetime_csv_file)
       end
     end
@@ -1906,10 +1906,10 @@ where the expected result is
 
   #def test_create_spreadsheet1
   #  name = File.join(TESTDIR,'createdspreadsheet.ods')
-  #  rm(name) if File.exists?(File.join(TESTDIR,'createdspreadsheet.ods'))
+  #  rm(name) if File.exist?(File.join(TESTDIR,'createdspreadsheet.ods'))
   #  # anlegen, falls noch nicht existierend
   #  s = OpenOffice.new(name,true)
-  #  assert File.exists?(name)
+  #  assert File.exist?(name)
   #end
 
   #def test_create_spreadsheet2
@@ -2087,7 +2087,7 @@ where the expected result is
     with_each_spreadsheet(:name=>'numbers1') do |oo|
       next unless (tempdir = oo.instance_variable_get('@tmpdir'))
       oo.close
-      assert !File.exists?(tempdir), "Expected #{tempdir} to be cleaned up, but it still exists"
+      assert !File.exist?(tempdir), "Expected #{tempdir} to be cleaned up, but it still exists"
     end
   end
 
@@ -2100,7 +2100,7 @@ where the expected result is
       GC.start
     end
     tempdirs.each do |tempdir|
-      assert !File.exists?(tempdir), "Expected #{tempdir} to be cleaned up, but it still exists"
+      assert !File.exist?(tempdir), "Expected #{tempdir} to be cleaned up, but it still exists"
     end
   end
 
