@@ -6,11 +6,11 @@ require 'benchmark'
 
 TESTDIR =  File.join(File.dirname(__FILE__), 'files')
 
-# Benchmark.bmbm do |bm|
+Benchmark.bmbm do |bm|
   spreadsheet = Roo::Spreadsheet.open(File.join(TESTDIR, "Bibelbund.xlsx"))
 
-  # bm.report "streaming" do
-    RubyProf.start
+  bm.report "streaming" do
+    # RubyProf.start
 
     i = 0
     spreadsheet.each_row_streaming do |row|
@@ -18,10 +18,10 @@ TESTDIR =  File.join(File.dirname(__FILE__), 'files')
     end
     p i
 
-    result = RubyProf.stop
+    # result = RubyProf.stop
+    #
+    # printer = RubyProf::FlatPrinter.new(result)
+    # printer.print(STDOUT)
 
-    printer = RubyProf::FlatPrinter.new(result)
-    printer.print(STDOUT)
-
-  # end
-# end
+  end
+end
