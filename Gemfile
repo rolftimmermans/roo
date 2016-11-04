@@ -1,7 +1,6 @@
 source 'https://rubygems.org'
 
 gemspec
-gem "ox", github: "rolftimmermans/ox", branch: "allow-other-bom"
 
 group :test do
   # additional testing libs
